@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><script nonce="B2OQJLrSKg2ZgjGfknQx9Q" src="https://chatgpt.com/__DLD__919346c914920a9307b34bc28d4bd7a68705647c6a84dea1e8dece440e5677bd/resources/setup.js"></script><script nonce="6I80EpyGMdpVWE/CDTNMDQ" src="https://chatgpt.com/__DLD__919346c914920a9307b34bc28d4bd7a68705647c6a84dea1e8dece440e5677bd/resources/frontend.min.js" server="https://localhost:49358" id="__dld-frontend__" async defer></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Pokédex Tracker 2.0</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f3f4f6;color:#202124}
+header{background:#202124;color:#fff;padding:18px 20px;position:sticky;top:0;z-index:20;box-shadow:0 2px 10px #0003}
+.header-inner{max-width:1450px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:15px;flex-wrap:wrap}
+h1{margin:0;font-size:1.45rem}.controls{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+select,button{font:inherit;border:1px solid #cfd2d7;border-radius:9px;padding:9px 11px;background:#fff;color:#202124;cursor:pointer}
+button:hover{filter:brightness(.97)}button.active{background:#202124;color:#fff;border-color:#202124}
+.layout{max-width:1450px;margin:20px auto;padding:0 15px 40px;display:grid;grid-template-columns:250px 1fr;gap:18px}
+aside{background:#fff;border:1px solid #d8dbe0;border-radius:14px;padding:15px;height:max-content;position:sticky;top:92px}
+aside h2{font-size:1rem;margin:0 0 12px}.step{font-weight:750;margin:13px 0 7px}
+.choice{display:block;width:100%;text-align:left;margin:6px 0;background:#f8f9fa}
+.choice.active{background:#202124;color:#fff}
+.type-list{display:grid;grid-template-columns:1fr 1fr;gap:6px}.type-btn{color:#fff;border:0;text-transform:capitalize;font-size:.74rem;text-shadow:0 1px 2px #0007;padding:7px 4px}
+.type-btn.selected{outline:3px solid #202124;outline-offset:1px}
+.clear{width:100%;margin-top:9px}.hint{font-size:.77rem;color:#6b7280;line-height:1.35;margin-top:11px}
+.mode-row{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.main-tools{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:13px}
+.stats{color:#6b7280;font-size:.9rem}.undo{font-weight:700}
+.grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+.pokemon{position:relative;min-height:190px;padding:11px;background:#fff;border:1px solid #d8dbe0;border-radius:14px;cursor:pointer;overflow:hidden;user-select:none;transition:transform .12s,box-shadow .12s,filter .15s}
+.pokemon:hover{transform:translateY(-2px);box-shadow:0 5px 16px #0002}
+.sprite{display:block;width:105px;height:105px;margin:2px auto 4px}.name{text-align:center;font-weight:750;text-transform:capitalize;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.dex{text-align:center;color:#68707a;font-size:.8rem}
+.poke-types{display:flex;justify-content:center;gap:5px;margin-top:7px}.poke-type{color:#fff;font-size:.66rem;font-weight:750;text-transform:uppercase;padding:3px 7px;border-radius:20px;text-shadow:0 1px 2px #0007}
+.cat-mythical{background:linear-gradient(135deg,#087f92,#39e5ef 43%,#00aabd 70%,#006f82);border-color:#00aabd}
+.cat-legendary{background:linear-gradient(135deg,#8e0754,#db2487 45%,#f14aaa 68%,#a80761);border-color:#db2487}
+.cat-pseudo{background:linear-gradient(135deg,#8a929b,#eef1f4 42%,#b7bdc5 65%,#777f89);border-color:#9aa2ab}
+.eliminated{background:#050505!important;border-color:#000!important;filter:none!important;color:#9a9a9a}
+.eliminated .name,.eliminated .dex{color:#9a9a9a}.eliminated .poke-type{filter:grayscale(1);opacity:.55}.eliminated .sprite{filter:grayscale(1) brightness(.55)}
+.type-flash{animation:yellowFlash .85s ease-in-out infinite alternate}
+@keyframes yellowFlash{from{filter:brightness(1)}to{filter:brightness(1.12)}}
+.cat-mythical.type-flash{background:linear-gradient(135deg,#087f92 0%,#39e5ef 43%,#39e5ef 49%,#fff1a8 50%,#fff1a8 100%)}
+.cat-legendary.type-flash{background:linear-gradient(135deg,#8e0754 0%,#db2487 43%,#db2487 49%,#fff1a8 50%,#fff1a8 100%)}
+.cat-pseudo.type-flash{background:linear-gradient(135deg,#8a929b 0%,#eef1f4 43%,#eef1f4 49%,#fff1a8 50%,#fff1a8 100%)}
+.normal.type-flash{background:#fff1a8}
+.hidden{display:none!important}
+.loading{text-align:center;padding:55px;color:#6b7280}.error{padding:16px;border-radius:10px;background:#fee2e2;color:#991b1b}
+.dropdown{position:relative}.dropdown-panel{display:none;margin-top:6px;padding:5px;background:#f7f7f8;border-radius:8px;box-shadow:inset 0 1px 3px #0001}.dropdown-panel.open{display:block}
+.category-btn{width:100%;text-align:left;background:#fff;margin:3px 0}.category-btn.active{background:#202124;color:#fff}
+.undo-panel{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}
+@media(max-width:1050px){.grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:800px){.layout{grid-template-columns:1fr}aside{position:static}.grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:600px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style>
+<style id="sidebar-scroll-fix">
+.layout-with-sidebar{align-items:start}
+.type-sidebar,aside{max-height:calc(100vh - 110px);overflow-y:auto;overflow-x:hidden}
+@media(max-width:800px){.type-sidebar,aside{max-height:none;overflow:visible}}
+</style></head>
+<body>
+<header><div class="header-inner"><h1>Pokédex Tracker 2.0</h1><div class="controls">
+<label>Generation:
+<select id="generation"><option value="1">I — Kanto</option><option value="2">II — Johto</option><option value="3">III — Hoenn</option><option value="4">IV — Sinnoh</option><option value="5">V — Unova</option><option value="6">VI — Kalos</option><option value="7">VII — Alola</option></select></label>
+<button id="undoBtn" class="undo">Undo last removal</button>
+</div></div></header>
+
+<div class="layout">
+<aside>
+<h2>Type Effectiveness</h2>
+<div class="step">1. Choose one</div>
+<div class="dropdown">
+<button id="effectDropdown" class="choice">Choose: <span id="effectLabel">—</span> ▾</button>
+<div id="effectPanel" class="dropdown-panel">
+<button class="category-btn" data-effect="resistant">Resistant to</button>
+<button class="category-btn" data-effect="effective">Effective against</button>
+</div></div>
+
+<div class="step">2. Type chart</div>
+<div id="typeList" class="type-list"></div>
+<button id="clearFilter" class="clear">Clear type highlighting</button>
+<div class="hint">Choose a type after selecting an option. Matching Pokémon blink yellow.</div>
+
+<hr style="border:0;border-top:1px solid #e2e4e7;margin:16px 0">
+
+<h2>Eliminate</h2>
+<button id="eliminateTypeToggle" class="choice">Eliminate all of one type</button>
+<div id="eliminateTypePanel" class="dropdown-panel"></div>
+
+<button id="monoBtn" class="choice">Eliminate all mono-types</button>
+<button id="dualBtn" class="choice">Eliminate all dual-types</button>
+
+<div class="step">Card behavior</div>
+<button id="removeModeBtn" class="choice">Remove-card mode: OFF</button>
+<div class="hint">OFF: clicking a Pokémon blacks it out and makes it grayscale. ON: clicking it removes the card completely.</div>
+</aside>
+
+<main>
+<div class="main-tools"><div id="stats" class="stats">Loading Pokémon…</div></div>
+<div id="content" class="loading">Loading Pokémon…</div>
+</main>
+</div>
+
+<script>
+const ranges={1:[1,151],2:[152,251],3:[252,386],4:[387,493],5:[494,649],6:[650,721],7:[722,809]};
+const typeColors={normal:"#8a8a59",fire:"#f08030",water:"#6890f0",electric:"#f8d030",grass:"#78c850",ice:"#98d8d8",fighting:"#c03028",poison:"#a040a0",ground:"#e0c068",flying:"#a890f0",psychic:"#f85888",bug:"#a8b820",rock:"#b8a038",ghost:"#705898",dragon:"#7038f8",dark:"#705848",steel:"#b8b8d0",fairy:"#ee99ac"};
+const types=Object.keys(typeColors);
+const mythicalIds=new Set([151,251,385,386,489,490,491,492,493,647,648,649,719,720,721,801,802,807,808,809]);
+const legendaryIds=new Set([144,145,146,150,243,244,245,249,250,377,378,379,380,381,382,383,384,480,481,482,483,484,485,486,487,488,638,639,640,641,642,643,644,645,646,716,717,718,785,786,787,788,789,790,791,792,800]);
+const pseudoIds=new Set([149,248,373,376,445,635,706,784]);
+
+const chart={};types.forEach(a=>{chart[a]={};types.forEach(b=>chart[a][b]=1)});
+function set(a,b,v){chart[a][b]=v}
+[
+["normal","rock",.5],["normal","ghost",0],["normal","steel",.5],
+["fire","fire",.5],["fire","water",.5],["fire","grass",2],["fire","ice",2],["fire","bug",2],["fire","rock",.5],["fire","dragon",.5],["fire","steel",2],
+["water","fire",2],["water","water",.5],["water","grass",.5],["water","ground",2],["water","rock",2],["water","dragon",.5],
+["electric","water",2],["electric","electric",.5],["electric","grass",.5],["electric","ground",0],["electric","flying",2],["electric","dragon",.5],
+["grass","fire",.5],["grass","water",2],["grass","grass",.5],["grass","poison",.5],["grass","ground",2],["grass","flying",.5],["grass","bug",.5],["grass","rock",2],["grass","dragon",.5],["grass","steel",.5],
+["ice","fire",.5],["ice","water",.5],["ice","grass",2],["ice","ice",.5],["ice","ground",2],["ice","flying",2],["ice","dragon",2],["ice","steel",.5],
+["fighting","normal",2],["fighting","ice",2],["fighting","poison",.5],["fighting","flying",.5],["fighting","psychic",.5],["fighting","bug",.5],["fighting","rock",2],["fighting","ghost",0],["fighting","dark",2],["fighting","steel",2],["fighting","fairy",.5],
+["poison","grass",2],["poison","poison",.5],["poison","ground",.5],["poison","rock",.5],["poison","ghost",.5],["poison","steel",0],["poison","fairy",2],
+["ground","fire",2],["ground","electric",2],["ground","grass",.5],["ground","poison",2],["ground","flying",0],["ground","bug",.5],["ground","rock",2],["ground","steel",2],
+["flying","electric",.5],["flying","grass",2],["flying","fighting",2],["flying","bug",2],["flying","rock",.5],["flying","steel",.5],
+["psychic","fighting",2],["psychic","poison",2],["psychic","psychic",.5],["psychic","steel",.5],["psychic","dark",0],
+["bug","fire",.5],["bug","grass",2],["bug","fighting",.5],["bug","poison",.5],["bug","flying",.5],["bug","psychic",2],["bug","ghost",.5],["bug","dark",2],["bug","steel",.5],["bug","fairy",.5],
+["rock","fire",2],["rock","ice",2],["rock","fighting",.5],["rock","ground",.5],["rock","flying",2],["rock","bug",2],["rock","steel",.5],
+["ghost","normal",0],["ghost","psychic",2],["ghost","ghost",2],["ghost","dark",.5],
+["dragon","dragon",2],["dragon","steel",.5],["dragon","fairy",0],
+["dark","fighting",.5],["dark","psychic",2],["dark","ghost",2],["dark","dark",.5],["dark","fairy",.5],
+["steel","fire",.5],["steel","water",.5],["steel","electric",.5],["steel","ice",2],["steel","rock",2],["steel","steel",.5],["steel","fairy",2],
+["fairy","fire",.5],["fairy","fighting",2],["fairy","poison",.5],["fairy","dragon",2],["fairy","dark",2],["fairy","steel",.5]
+].forEach(x=>set(...x));
+
+let pokemon=[], effect=null, selectedType=null, removeMode=false;
+let eliminated=new Set(JSON.parse(localStorage.getItem("dex-eliminated")||"[]"));
+let removedCards=new Set(JSON.parse(localStorage.getItem("dex-removed-cards")||"[]"));
+let undoStack=[];
+
+const content=document.getElementById("content"), stats=document.getElementById("stats");
+function cat(id){if(mythicalIds.has(id))return"cat-mythical";if(legendaryIds.has(id))return"cat-legendary";if(pseudoIds.has(id))return"cat-pseudo";return"normal"}
+function saveState(){localStorage.setItem("dex-eliminated",JSON.stringify([...eliminated]));localStorage.setItem("dex-removed-cards",JSON.stringify([...removedCards]))}
+function effectMatch(p){
+ if(!effect||!selectedType)return false;
+ const ts=p.types.map(x=>x.type.name);
+ if(effect==="resistant"){
+   const mult=ts.reduce((n,t)=>n*(chart[selectedType][t]??1),1);
+   return mult<1;
+ }
+ // "Effective against" means at least one of the Pokémon's actual types
+ // is an attacking type that deals >1x damage to the selected type.
+ return ts.some(attacker=>(chart[attacker][selectedType]??1)>1);
+}
+function eliminatedByCurrent(p){return p.types.some(x=>eliminated.has(x.type.name))}
+function isCategoryEliminated(p){
+ return eliminated.has("mono") && p.types.length===1 || eliminated.has("dual") && p.types.length===2;
+}
+function isEliminated(p){return eliminatedByCurrent(p)||isCategoryEliminated(p)}
+function render(){
+ const visible=pokemon.filter(p=>!removedCards.has(p.id));
+ stats.textContent=`${visible.length} Pokémon shown • ${pokemon.length-visible.length} removed • ${eliminated.size} elimination rule${eliminated.size===1?"":"s"}`;
+ content.className="grid";content.innerHTML="";
+ visible.forEach(p=>{
+   const card=document.createElement("div");card.className="pokemon "+cat(p.id);
+   if(isEliminated(p))card.classList.add("eliminated");
+   if(!isEliminated(p)&&effectMatch(p))card.classList.add("type-flash");
+   card.dataset.id=p.id;
+   card.innerHTML=`<img class="sprite" src="${p.sprites.front_default||""}" alt="${p.name}"><div class="name">${p.name}</div><div class="dex">#${String(p.id).padStart(3,"0")}</div><div class="poke-types">${p.types.map(x=>`<span class="poke-type" style="background:${typeColors[x.type.name]}">${x.type.name}</span>`).join("")}</div>`;
+   card.onclick=()=>handleCardClick(p);
+   content.appendChild(card);
+ });
+}
+function handleCardClick(p){
+ if(removeMode){
+   if(removedCards.has(p.id))return;
+   removedCards.add(p.id);undoStack.push({kind:"card",id:p.id});saveState();render();return;
+ }
+ if(!isEliminated(p)){
+   // Card elimination: black background + grayscale, replacing the old X behavior.
+   eliminated.add(p.id);undoStack.push({kind:"pokemon",id:p.id});saveState();render();
+ } else {
+   eliminated.delete(p.id);undoStack.push({kind:"restorePokemon",id:p.id});saveState();render();
+ }
+}
+function eliminateRule(key){
+  if(removeMode){
+    const ids=pokemon.filter(p=>{
+      if(removedCards.has(p.id)) return false;
+      if(key==="mono") return p.types.length===1;
+      if(key==="dual") return p.types.length===2;
+      return p.types.some(x=>x.type.name===key);
+    }).map(p=>p.id);
+    if(ids.length){ids.forEach(id=>removedCards.add(id));undoStack.push({kind:"batch",ids});saveState();render();}
+    return;
+  }
+  if(!eliminated.has(key)){eliminated.add(key);undoStack.push({kind:"rule",key});saveState();render()}
+}
+document.getElementById("undoBtn").onclick=()=>{
+ const a=undoStack.pop();if(!a)return;
+ if(a.kind==="card")removedCards.delete(a.id);
+ if(a.kind==="pokemon")eliminated.delete(a.id);
+ if(a.kind==="restorePokemon")eliminated.add(a.id);
+ if(a.kind==="rule")eliminated.delete(a.key);
+ if(a.kind==="batch")a.ids.forEach(id=>removedCards.delete(id));
+ saveState();render();
+};
+
+const effectDropdown=document.getElementById("effectDropdown"),effectPanel=document.getElementById("effectPanel"),effectLabel=document.getElementById("effectLabel");
+effectDropdown.onclick=()=>effectPanel.classList.toggle("open");
+document.querySelectorAll("[data-effect]").forEach(b=>b.onclick=()=>{
+ effect=b.dataset.effect;selectedType=null;effectLabel.textContent=b.textContent;
+ document.querySelectorAll("[data-effect]").forEach(x=>x.classList.toggle("active",x===b));
+ effectPanel.classList.remove("open");render();
+});
+const typeList=document.getElementById("typeList");
+types.forEach(t=>{const b=document.createElement("button");b.className="type-btn";b.textContent=t;b.style.background=typeColors[t];b.onclick=()=>{selectedType=t;document.querySelectorAll(".type-btn").forEach(x=>x.classList.remove("selected"));b.classList.add("selected");render()};typeList.appendChild(b)});
+document.getElementById("clearFilter").onclick=()=>{effect=null;selectedType=null;effectLabel.textContent="—";document.querySelectorAll(".type-btn").forEach(x=>x.classList.remove("selected"));document.querySelectorAll("[data-effect]").forEach(x=>x.classList.remove("active"));render()};
+
+const eliminatePanel=document.getElementById("eliminateTypePanel");
+document.getElementById("eliminateTypeToggle").onclick=()=>{
+ eliminatePanel.classList.toggle("open");eliminatePanel.innerHTML="";
+ if(eliminatePanel.classList.contains("open")){
+   types.forEach(t=>{const b=document.createElement("button");b.className="type-btn";b.textContent=t;b.style.background=typeColors[t];b.style.opacity=eliminated.has(t)?".45":"1";b.onclick=()=>{
+   if(removeMode){
+     const ids=pokemon.filter(p=>!removedCards.has(p.id)&&p.types.some(x=>x.type.name===t)).map(p=>p.id);
+     if(ids.length){ids.forEach(id=>removedCards.add(id));undoStack.push({kind:"batch",ids});saveState();render()}
+   }else{
+     eliminated.has(t)?eliminated.delete(t):(eliminated.add(t),undoStack.push({kind:"rule",key:t}));
+     saveState();b.style.opacity=eliminated.has(t)?".45":"1";render()
+   }
+ };eliminatePanel.appendChild(b)});
+ }
+};
+document.getElementById("monoBtn").onclick=()=>eliminateRule("mono");
+document.getElementById("dualBtn").onclick=()=>eliminateRule("dual");
+const removeBtn=document.getElementById("removeModeBtn");
+removeBtn.onclick=()=>{removeMode=!removeMode;removeBtn.textContent=`Remove-card mode: ${removeMode?"ON":"OFF"}`;removeBtn.classList.toggle("active",removeMode)};
+
+async function load(){
+ const [s,e]=ranges[document.getElementById("generation").value];
+ content.className="loading";content.textContent="Loading Pokémon…";
+ try{
+   pokemon=await Promise.all(Array.from({length:e-s+1},(_,i)=>fetch(`https://pokeapi.co/api/v2/pokemon/${s+i}`).then(r=>{if(!r.ok)throw Error();return r.json()})));
+   render();
+ }catch(err){content.className="error";content.textContent="Could not load Pokémon. Check your internet connection and refresh."}
+}
+document.getElementById("generation").onchange=()=>{undoStack=[];load()};
+load();
+</script>
+</body>
+</html>
